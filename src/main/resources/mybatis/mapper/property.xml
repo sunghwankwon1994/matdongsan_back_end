@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.PropertyDao">
+	<!-- 생성 -->
+	<insert id="createPropertyByProperty" parameterType="Property">
+		<selectKey keyProperty="pnumber" resultType="int"
+			order="BEFORE">
+			select seq_pnumber.nextval from dual
+		</selectKey>
+		insert into property(pnumber, pdeposite, prentalfee, pfloortype,
+		pfloor, psize, pmaintenance,
+		phitcount, pdate, pstatus, ptitle, pcategory, paddress, paddressdetail,
+		ppostcode, platitude,
+		plongitude, p_unumber, pthumbnaildata, pthumbnailoname, pthumbnailtype)
+
+		values(#{pnumber}, #{pdeposite}, #{prentalfee}, #{pfloortype},
+		#{pfloor}, #{psize}, #{pmaintenance},
+		0, sysdate, #{pstatus}, #{ptitle}, #{pcategory}, #{paddress},
+		#{paddressdetail},
+		#{ppostcode}, #{platitude}, #{plongitude}, #{pUnumber}, #{pthumbnaildata},
+		#{pthumbnailoname}, #{pthumbnailtype})
+	</insert>
+
+	<!-- 수정 -->
+	<update id="updatePropertyByProperty" parameterType="Property">
+		update property set pdeposite=#{pdeposite}, prentalfee=#{prentalfee},
+		pfloortype=#{pfloortype}, pfloor=#{pfloor},
+		psize=#{psize}, pmaintenance=#{pmaintenance}, ptitle=#{ptitle},
+		pcategory=#{pcategory},
+		paddress=#{paddress}, paddressdetail=#{paddressdetail}, ppostcode=#{ppostcode},
+		platitude=#{platitude}, plongitude=#{plongitude}
+		<if test="pthumbnailoname != null">
+			, pthumbnailoname=#{pthumbnailoname},
+			pthumbnailtype=#{pthumbnailtype},
+			pthumbnaildata=#{pthumbnaildata}
+		</if>
+		where pnumber=#{pnumber}
+	</update>
+
+	<!-- 매물 상태 수정 -->
+	<update id="updatePropertyStatus" parameterType="map">
+		update property
+		set pstatus=#{pstatus}
+		where pnumber=#{pnumber}
+	</update>
+
+	<!-- 조회수 -->
+	<update id="updatePhitcount" parameterType="int">
+		update property
+		set phitcount=phitcount+1
+		where pnumber=#{pnumber}
+	</update>
+
+	<!-- 읽기 -->
+	<select id="selectByPnumber" parameterType="int"
+		resultType="Property">
+		select *
+		from property
+		where pnumber=#{pnumber}
+	</select>
+
+	<!-- property 총 개수 -->
+	<select id="getAllPropertyCount" resultType="int">
+		select
+		count(*)
+		from property
+		where pstatus='활성화'
+	</select>
+
+	<!-- property 개수 by filter and keyword -->
+	<select id="getPropertyCountByFilter" resultType="int">
+		select
+		count(*)
+		from property
+		<where>
+			pstatus='활성화'
+			<if test="rentType != null and rentType != ''">
+				and pcategory=#{rentType}
+			</if>
+			<if test="floorType != null and floorType != ''">
+				and pfloortype=#{floorType}
+			</if>
+			<if test="keyword != null and keyword != ''">
+				and (
+				paddress like '%' || #{keyword} || '%'
+				or paddressdetail like '%' || #{keyword} || '%'
+				)
+			</if>
+			<if test="platitude != null">
+				and PLATITUDE = #{platitude}
+				and plongitude = #{plongitude}
+			</if>
+		</where>
+	</select>
+
+	<!-- property 전체 리스트 -->
+	<select id="getAllPropertyList" parameterType="map"
+		resultType="Property">
+		<![CDATA[
+		    select pnumber, pdeposite, prentalfee, pfloortype, pfloor, psize, pmaintenance, phitcount, pdate, pstatus, 
+		    ptitle, pcategory, paddress, paddressdetail, ppostcode, platitude, plongitude, p_unumber
+		    from (
+		        select p.*, row_number() over (order by p.pnumber desc) as rnum
+		        from property p
+		        where pstatus='활성화'
+		    )
+		    where rnum between #{offset} + 1 and #{offset} + #{limit}
+	    ]]>
+	</select>
+	
+	
+
+	<!-- property 리스트 by filter and keyword -->
+	<select id="getPropertyListByFilter" parameterType="map"
+		resultType="Property">
+    <![CDATA[
+        select pnumber, pdeposite, prentalfee, pfloortype, pfloor, psize, pmaintenance, phitcount, pdate, pstatus, 
+		    ptitle, pcategory, paddress, paddressdetail, ppostcode, platitude, plongitude, p_unumber
+        from (
+            select p.*, row_number() over (order by p.pnumber desc) as rnum
+            from property p 
+    ]]>
+		<where>
+			pstatus='활성화'
+			<if test="rentType != null and rentType != ''">
+				and pcategory=#{rentType}
+			</if>
+			<if test="floorType != null and floorType != ''">
+				and pfloortype=#{floorType}
+			</if>			
+			<if test="keyword != null and keyword != ''">
+				and (
+				p.paddress like '%' || #{keyword} || '%'
+				or p.paddressdetail like '%' || #{keyword} || '%'
+				)
+			</if>
+			<if test="platitude != null and plongitude != null">
+				and PLATITUDE like #{platitude} || '%' 
+				and PLONGITUDE like #{plongitude} || '%'
+			</if>
+		</where>
+<!-- 		order by
+		<if test="price=='low'">
+			pdeposite asc
+		</if>
+		<if test="price=='high'">
+			pdeposite desc
+		</if>
+		<if test="price != null and date != null">
+			,
+		</if>
+		<if test="date=='asc'">
+			pdate asc
+		</if>
+		<if test="date=='desc'">
+			pdate desc
+		</if>
+		<if test="price==null and date==null">
+			pnumber desc
+		</if>   -->   
+		 
+    <trim prefix="ORDER BY" prefixOverrides="," suffixOverrides=",">
+        <if test="price == 'low'">
+            pdeposite ASC,
+        </if>
+        <if test="price == 'high'">
+            pdeposite DESC,
+        </if>
+        <if test="date == 'asc'">
+            pdate ASC,
+        </if>
+        <if test="date == 'desc'">
+            pdate DESC,
+        </if>
+        <if test="price == null and date == null">
+            pnumber DESC,
+        </if>
+    </trim>	
+    	                  
+    <![CDATA[ )
+        where rnum between #{offset} + 1 and #{offset} + #{limit}
+    ]]>
+	</select>
+
+	<!-- 삭제 -->
+	<delete id="deletePropertyByPnumber" parameterType="int">
+		delete
+		from property
+		where pnumber=#{pnumber}
+	</delete>
+
+	<!-- 댓글 작성 시 매물 주인 여부 -->
+	<select id="isPropertyOwnerByComment" resultType="int">
+		select
+		count(*)
+		from property
+		where pnumber=#{pnumber} and p_unumber=#{userNumber}
+	</select>
+
+	<!-- 유저 매물 리스트 -->
+	<select id="getUserPropertyListByUnumber" parameterType="Pager"
+		resultType="Property">
+		<![CDATA[
+		select rnum, pnumber,pdeposite,prentalfee, pfloortype, pfloor, psize, pmaintenance, pdate, pstatus, ptitle, pcategory, p_unumber
+		from (
+				select rownum as rnum, pnumber,pdeposite,prentalfee, pfloortype, pfloor, psize, pmaintenance, pdate, pstatus, ptitle, pcategory, p_unumber, pthumbnaildata, pthumbnailoname, pthumbnailtype
+		from(
+			select pnumber,pdeposite,prentalfee, pfloortype, pfloor, psize, pmaintenance, pdate, pstatus, ptitle, pcategory, p_unumber, pthumbnaildata, pthumbnailoname, pthumbnailtype
+			from property
+			where p_unumber=#{unumber}
+			order by pnumber desc
+		)
+		where rownum <= #{pager.endRowNo}
+		)
+		where rnum >= #{pager.startRowNo}
+		]]>
+	</select>
+	
+	<!-- 유저 매물 리스트 by filter -->
+	<select id="getUserPropertyListByUnumberAndFilter" parameterType="Pager"
+		resultType="Property">
+		<![CDATA[
+		select rnum, pnumber,pdeposite,prentalfee, pfloortype, pfloor, psize, pmaintenance, pdate, pstatus, ptitle, pcategory, p_unumber, pthumbnaildata, pthumbnailoname, pthumbnailtype
+		from (
+				select rownum as rnum, pnumber,pdeposite,prentalfee, pfloortype, pfloor, psize, pmaintenance, pdate, pstatus, ptitle, pcategory, p_unumber, pthumbnaildata, pthumbnailoname, pthumbnailtype
+		from(
+			select pnumber,pdeposite,prentalfee, pfloortype, pfloor, psize, pmaintenance, pdate, pstatus, ptitle, pcategory, p_unumber, pthumbnaildata, pthumbnailoname, pthumbnailtype
+			from property ]]>
+		<where>
+			p_unumber=#{unumber}
+			<if test="filterKeyword != null and filterKeyword == '거래완료'">
+				and pstatus='거래완료'
+			</if>
+			<if test="filterKeyword != null and filterKeyword == '거래중'">
+				and pstatus='활성화'
+			</if>			
+		</where>
+			<![CDATA[order by pdate ]]>
+		<if test="filterKeyword !=null and filterKeyword == 'desc'">
+			desc
+		</if>
+		<if test="filterKeyword !=null and filterKeyword == 'asc'">
+			asc
+		</if>		
+		<![CDATA[	
+		)
+		where rownum <= #{pager.endRowNo}
+		)
+		where rnum >= #{pager.startRowNo}
+		]]>
+	</select>	
+
+	<!-- 유저 매물 총 개수 -->
+	<select id="getAllUserPropertyCountByUnumber" resultType="int">
+		select
+		count(*)
+		from property
+		where p_unumber=#{unumber}
+	</select>
+	
+	<!-- 유저 매물 총 개수 -->
+	<select id="getAllUserPropertyCountByUnumberAndFilter" resultType="int">
+		select
+		count(*)
+		from property
+		<where>
+			p_unumber=#{unumber}
+			<if test="filterKeyword != null and filterKeyword == '거래완료'">
+				and pstatus='거래완료'
+			</if>
+			<if test="filterKeyword != null and filterKeyword == '거래중'">
+				and pstatus='활성화'
+			</if>	
+		</where>
+	</select>	
+	
+
+	<!-- 인기 매물 -->
+	<select id="getPopularPropertyListByHitcount"
+		resultType="Property">
+	<![CDATA[
+		select pnumber, pdeposite, prentalfee, pfloortype, pfloor, psize, pmaintenance, phitcount, pdate, pstatus, 
+		    ptitle, pcategory, paddress, paddressdetail, ppostcode, platitude, plongitude, p_unumber,PTHUMBNAILONAME
+		from (
+				select * 
+				from property 
+				where pstatus='활성화'
+				order by phitcount desc
+		)
+		where rownum <= 4
+	]]>
+	</select>
+
+	<!-- 완료된 거래 개수 -->
+	<select id="getTradeCountByUserNumber" parameterType="int"
+		resultType="int">
+		select count(*) from property
+		where pstatus='거래완료'
+		and
+		p_unumber = #{userNumber}
+	</select>
+	
+	<!-- 전체 매물 데이터 (페이저X) -->
+	<select id="getAllPropertyListWithoutPager" resultType="Property">
+	select pnumber,platitude,plongitude from property
+	where pstatus != '거래완료'	
+	</select>
+	
+	<!-- 해당 좌표 pnumber 리턴 -->
+	<select id="getPnumberByPropertyPosition" resultType="int" >
+		select pnumber from property
+		where platitude = #{platitude}
+		and plongitude = #{plongitude}
+		and pstatus != '거래완료'
+	</select>
+</mapper>

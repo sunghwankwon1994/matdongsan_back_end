@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.UserCommentDao">
+
+	<!-- 생성 -->
+	<insert id="createPropertyComment" parameterType="UserComment">
+		<selectKey keyProperty="ucnumber" resultType="int" order="BEFORE">
+			select seq_ucnumber.nextval from dual
+		</selectKey>	
+		insert into user_comment (ucnumber, uccomment, ucdate, uc_unumber, ucparentnumber, uc_pnumber, ucremoved)
+		
+		values(#{ucnumber}, #{uccomment}, sysdate, #{ucUnumber}, #{ucparentnumber}, #{ucPnumber}, #{ucremoved})
+	</insert>	
+	
+	<!-- 자식 댓글 여부 -->
+   	<select id="isChildComment" resultType="int">
+      select 
+      	count(*) 
+      from user_comment
+      where uc_pnumber=#{pnumber} and ucparentnumber=#{ucnumber}
+   	</select>  
+   	
+   	<!-- 삭제 -->
+	<delete id="deletePropertyComment" parameterType="int">
+		delete 
+		from user_comment
+		where ucnumber=#{cnumber} and uc_pnumber = #{pnumber}
+		and uc_unumber = #{userNumber}
+	</delete>
+	
+   <!-- 댓글 가져오기 -->
+    <select id="getCommentByCnumber" parameterType="int" resultType="UserComment">
+      select *
+      from user_comment 
+      where ucnumber=#{cnumber}
+   </select>	
+   
+   	<!-- 수정 -->
+   <update id="updatePropertyComment" parameterType="UserComment">
+	    update user_comment 
+	    set uccomment=#{uccomment}, ucremoved=#{ucremoved}
+   		where ucnumber=#{ucnumber}
+   </update>
+   
+   <!-- 댓글 총 개수 -->
+   <select id="getTotalCommentCount" resultType="int">
+		select count(*)
+		from user_comment 
+		where uc_pnumber=#{pnumber}
+   </select>
+   
+   <!-- 댓글 리스트 -->
+   <select id="getCommentByPager" parameterType="Pager" resultType="UserComment">
+<![CDATA[
+SELECT rnum, ucnumber, uccomment, ucdate, uc_unumber, ucparentnumber, uc_pnumber, ucremoved FROM (
+    SELECT ROWNUM AS rnum, ucnumber, uccomment, ucdate, uc_unumber, ucparentnumber, uc_pnumber, ucremoved
+    FROM (
+        SELECT ucnumber, uccomment, ucdate, uc_unumber, ucparentnumber, uc_pnumber, ucremoved
+        FROM user_comment
+        WHERE uc_pnumber = #{pnumber}
+        START WITH ucparentnumber = 0
+        CONNECT BY PRIOR ucnumber = ucparentnumber
+        ORDER SIBLINGS BY 
+        ]]>
+        <if test="date == 'desc'">
+        <![CDATA[
+	        DECODE(ucparentnumber, 0, ucnumber, NULL) DESC, DECODE(ucparentnumber, 0, NULL, ucnumber) ASC ]]>
+        </if>
+        <if test="date == 'asc'">
+        ucnumber
+        </if>
+        <![CDATA[
+    )
+    WHERE ROWNUM <= #{pager.endRowNo}
+)
+WHERE rnum >= #{pager.startRowNo}
+
+]]>
+		
+   </select>
+</mapper>

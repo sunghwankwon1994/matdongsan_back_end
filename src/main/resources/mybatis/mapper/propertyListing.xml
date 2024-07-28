@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.mycompany.matdongsan.dao.PropertyListingDao">
+	<insert id="createPropertyListing"
+		parameterType="PropertyListing">
+		<selectKey keyProperty="plnumber" resultType="int"
+			order="BEFORE">
+			select seq_plnumber.nextval from dual
+		</selectKey>
+		insert into property_listing(plnumber, plprice,pldate,
+		plquantity,pl_unumber, plremain)
+		values
+		(#{plnumber}, #{plprice},
+		sysdate, #{plquantity},
+		#{plUnumber}, #{plremain})
+	</insert>
+	<select id="checkPropertyListingByUserNumber"
+		parameterType="int">
+		select count(*) from property_listing
+		where pl_unumber = #{userNumber}
+
+	</select>
+	<select id="checkUserDataInPropertyListing" parameterType="int"
+		resultType="int">
+		select count(*) from property_listing
+		where pl_unumber =
+		#{userNumber}
+		and plremain > 0
+	</select>
+	<!-- 유저 넘버에 따른 등록권 개수 -->
+	<select id="getQuantityByUserNumber" parameterType="int">
+		select PLQUANTITY from property_listing
+		where pl_unumber = #{userNumber}
+	</select>
+	<!-- 유저 넘버에 따른 등록권 개수 -->
+	<select id="getRemainByUserNumber" parameterType="int"
+		resultType="int">
+		select PLREMAIN from property_listing
+		where pl_unumber = #{userNumber} and plremain != 0
+	</select>
+	<!-- remain 개수 수정 -->
+	<update id="updateRemainPropertyListing" parameterType="int">
+		update
+		property_listing
+		set plremain = plremain - 1
+		where pl_unumber =
+		#{userNumber}
+		and plremain > 0
+	</update>
+</mapper>

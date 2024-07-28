@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mycompany.matdongsan.dao.MemberDao">
+	<insert id="insertMemberData" parameterType="Member">
+		<selectKey keyProperty="mnumber" resultType="int"
+			order="BEFORE">
+			select seq_mnumber.nextval from dual
+		</selectKey>
+		insert into member(mnumber, mname, mphone, mprofileoname,
+		mprofiledata, mprofiletype, m_unumber)
+		values (#{mnumber}, #{mname},
+		#{mphone}, #{mprofileoname}, #{mprofiledata}, #{mprofiletype},
+		#{mUnumber})
+	</insert>
+	<select id="getMemberDataByMemberNumber" parameterType="int" resultType="Member">
+	select * from member where mnumber = #{mnumber}
+	</select>
+	<select id="getMemberNameByarMnumber" parameterType="int" resultType="String">
+		select mname from member where mnumber = #{arMnumber}
+	</select>
+	<select id="getMemberNumberByMemberEmail" parameterType="int"
+		resultType="int">
+		select mnumber from member
+		where m_unumber = #{userNumber}
+	</select>
+	<update id="updateMemberData" parameterType="Member">
+		update member set
+		mname=#{mname},mphone=#{mphone}
+		
+		
+		<if test="mprofileoname != null">
+		,mprofileoname=#{mprofileoname},
+		mprofiletype=#{mprofiletype},
+		mprofiledata=#{mprofiledata}
+		</if>
+		where mnumber=#{mnumber}
+	</update>
+	<select id="getMemberDataByUserNumber" parameterType="int"
+		resultType="Member">
+		select * from member
+		where m_unumber = #{userNumber}
+	</select>
+	
+	<!-- 아이디 찾기 -->
+	<select id="findEmail" parameterType="member" resultType="String">
+		select uemail from user_common_data
+		where unumber in (select m_unumber
+							from member
+							where mname = #{mname} and mphone =#{mphone})
+	</select>
+	
+	<!-- 회원의 정보가 일치하는 지 확인 -->
+	<select id="checkMember" parameterType="member" resultType="int">
+		select count(*) from member where mname = #{mname} and mphone =#{mphone}
+	</select>
+	
+	<!-- 아이디 중복 찾기 -->
+	<select id="getEmailUniqueCheck" parameterType="String" resultType="int">
+	select count(*) from user_common_data where uemail = #{uemail}
+	</select>
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.PropertyDetailDao">
+	<!-- 생성 -->
+	<insert id="createPropertyByPropertyDetail" parameterType="PropertyDetail">
+		<selectKey keyProperty="pdnumber" resultType="int" order="BEFORE">
+			select seq_pdnumber.nextval from dual
+		</selectKey>	
+		<!-- pdmoveindate 수정하기 -->
+		insert into property_detail(pdnumber, pdcontent, pdmoveindate, pdbath, pdlift, pdbed, 
+		pdlot, pdheating, pdcooling, pdmicrowave, pdburner, pdfridge, pdshoecloset, pdtv, pdcloset, 
+		pddinningtable, pdtable, pdwasher, pdinduction, pd_pnumber)
+		
+		values(#{pdnumber}, #{pdcontent}, sysdate, #{pdbath}, #{pdlift}, #{pdbed},
+				#{pdlot}, #{pdheating}, #{pdcooling}, #{pdmicrowave}, #{pdburner}, #{pdfridge}, #{pdshoecloset},
+				#{pdtv}, #{pdcloset}, #{pddinningtable}, #{pdtable}, #{pdwasher}, #{pdinduction}, #{pdPnumber})
+	</insert>
+	
+	<!-- 수정 -->
+   <update id="updatePropertyByPropertyDetail" parameterType="PropertyDetail">
+   <!-- pdmoveindate 수정하기 -->
+      update property_detail set pdcontent=#{pdcontent}, pdbath=#{pdbath}, pdlift=#{pdlift}, pdbed=#{pdbed}, 
+      					pdlot=#{pdlot}, pdheating=#{pdheating}, pdcooling=#{pdcooling}, pdmicrowave=#{pdmicrowave},
+      					pdburner=#{pdburner}, pdfridge=#{pdfridge}, pdshoecloset=#{pdshoecloset}, pdtv=#{pdtv}, pdcloset=#{pdcloset},
+      					pddinningtable=#{pddinningtable}, pdtable=#{pdtable}, pdwasher=#{pdwasher}, pdinduction=#{pdinduction}
+      
+      where pdnumber=#{pdnumber}
+   </update>	
+   
+   <!-- 읽기 -->
+    <select id="selectByPdnumber" parameterType="int" resultType="PropertyDetail">
+      select *
+      from property_detail 
+      where pdnumber=#{pdnumber}
+   </select> 
+   
+   <!-- pk 값 가져오기 -->
+	<select id="selectPdnumberByPnumber" resultType="int">
+		select pdnumber 
+		from property_detail  
+		where pd_pnumber=#{pdPnumber}
+	</select>   
+	
+	<!-- 삭제 -->
+	<delete id="deletePropertyDetailByPdPnumber" parameterType="int">
+		delete 
+		from property_detail
+		where pd_pnumber=#{pdPnumber}
+	</delete>	
+	
+   <!-- 읽기 -->
+    <select id="selectPropertyDetailByPdPnumber" parameterType="int" resultType="PropertyDetail">
+      select *
+      from property_detail 
+      where pd_pnumber=#{pdPnumber}
+   </select> 		  
+</mapper>

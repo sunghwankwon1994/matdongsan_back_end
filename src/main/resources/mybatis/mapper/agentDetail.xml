@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.AgentDetailDao">
+
+	<insert id="insertNewAgentDetailData"
+		parameterType="AgentDetail">
+		<selectKey keyProperty="adnumber" resultType="int"
+			order="BEFORE">
+			select seq_adnumber.nextval from dual
+		</selectKey>
+		insert into agent_detail(adnumber, adattachoname,
+		adattachdata,adattachtype,adbrandnumber,AD_ANUMBER)
+		values
+		(#{adnumber},  #{adattachoname}, #{adattachdata},
+		#{adattachtype},#{adbrandnumber},#{adAnumber})
+	</insert>
+	<select id="getAgentDetailDataByAgentNumber" parameterType="int"
+		resultType="AgentDetail">
+		select * from agent_detail
+		where ad_anumber = #{anumber}
+	</select>
+
+	<update id="updateAgentDetailData" parameterType="AgentDetail">
+		update agent_detail set
+		adbrandnumber=#{adbrandnumber}
+		where
+		ad_anumber=#{adAnumber}
+	</update>
+</mapper>

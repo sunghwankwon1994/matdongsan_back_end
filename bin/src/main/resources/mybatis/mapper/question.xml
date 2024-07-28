@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.QuestionDao">
+
+	<insert id="insert" parameterType="question">
+		<selectKey keyProperty="qnumber" resultType="int" order="BEFORE">
+			select SEQ_QNUMBER.nextval from dual
+		</selectKey>
+		insert into question(
+			qnumber, qcategory, qtitle, qcontent, qattachoname, qattachdata, 
+			qattachtype, qdate, q_email, qroletype 
+		) values(
+			#{qnumber}, #{qcategory}, #{qtitle}, #{qcontent}, #{qattachoname},
+			#{qattachdata}, #{qattachtype}, sysdate, #{ qEmail }, #{qroletype}
+		)
+	</insert>
+	
+	<!-- 이미지 데이터는 빼고 가져 온다. -->
+	<select id="getQuestion" parameterType="int" resultType="question">
+		select qnumber, qcategory, qtitle, qcontent, qattachoname,  
+			qattachtype, qdate, q_email, qroletype 
+		from question
+		where qnumber = #{qnumber}
+	</select>
+	
+	
+
+</mapper>

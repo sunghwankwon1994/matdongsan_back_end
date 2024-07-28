@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.egit.ui.internal.staging.StagingView">
+		<item key="MAIN_SASH_FORM_ORIENTATION_VERTICAL" value="false"/>
+		<item key="HORIZONTAL_SASH_FORM_WEIGHT" value="200,200"/>
+		<item key="STAGING_SASH_FORM_WEIGHT" value="200,200"/>
+		<item key="sortItemState" value="false"/>
+	</section>
+	<section name="GitCommitMessageComponent">
+		<list key="C:\Users\Ian Kwon\Downloads\matdongsan_back_end-master\matdongsan_back_end\.git">
+			<item value="false"/>
+			<item value="sunghwan kwon &lt;sunghwan.ian.kwon@gmail.com&gt;"/>
+			<item value="matdongsan backend 업로드 커밋"/>
+			<item value="sunghwan kwon &lt;sunghwan.ian.kwon@gmail.com&gt;"/>
+			<item value="0000000000000000000000000000000000000000"/>
+			<item value="0"/>
+			<item value="false"/>
+			<item value=""/>
+		</list>
+	</section>
+</section>

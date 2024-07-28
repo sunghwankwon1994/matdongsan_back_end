@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.FavoriteDao">
+	<!-- 좋아요 여부 -->
+	<select id="existsFavorite" resultType="int">
+		select
+		count(*)
+		from favorite
+		where f_pnumber=#{pnumber} and f_mnumber=#{mnumber}
+	</select>
+
+	<!-- 좋아요 -->
+	<insert id="addLikeButton" parameterType="Favorite">
+		insert into favorite
+		(f_pnumber, f_mnumber)
+		values(#{fPnumber}, #{fMnumber})
+	</insert>
+
+	<!-- 좋아요 취소 -->
+	<delete id="cancelLikeButton" parameterType="int">
+		delete
+		from favorite
+		where f_pnumber=#{pnumber} and f_mnumber = #{userNumber}
+	</delete>
+
+	<!-- 좋아요 리스트 -->
+	<select id="getUserFavoriteList" resultMap="FavoriteResultMap">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT f.*, p.*, row_number() over (order by f.f_pnumber desc) as rnum
+        FROM favorite f
+        JOIN property p ON f.f_pnumber = p.pnumber
+        where f.f_mnumber = #{mnumber}
+    ) WHERE rnum BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+    ]]>
+</select>
+
+<resultMap id="FavoriteResultMap" type="com.mycompany.matdongsan.dto.Favorite">
+    <id property="fPnumber" column="f_pnumber" />
+    <result property="fMnumber" column="f_mnumber" />
+    <association property="property" javaType="com.mycompany.matdongsan.dto.Property">
+        <id property="pnumber" column="pnumber" />
+        <result property="pdeposite" column="pdeposite" />
+        <result property="prentalfee" column="prentalfee" />
+        <result property="pthumbnaildata" column="pthumbnaildata" />
+        <result property="pthumbnailoname" column="pthumbnailoname" />
+        <result property="pthumbnailtype" column="pthumbnailtype" />
+        <result property="pfloortype" column="pfloortype" />
+        <result property="pfloor" column="pfloor" />
+        <result property="psize" column="psize" />
+        <result property="pmaintenance" column="pmaintenance" />
+        <result property="phitcount" column="phitcount" />
+        <result property="pdate" column="pdate" />
+        <result property="pstatus" column="pstatus" />
+        <result property="ptitle" column="ptitle" />
+        <result property="pcategory" column="pcategory" />
+        <result property="paddress" column="paddress" />
+        <result property="paddressdetail" column="paddressdetail" />
+        <result property="ppostcode" column="ppostcode" />
+        <result property="platitude" column="platitude" />
+        <result property="plongitude" column="plongitude" />
+        <result property="pUnumber" column="pUnumber" />
+    </association>
+</resultMap>
+
+	<!-- 좋아요 총 개수 -->
+	<select id="getUserFavoriteCountByUnumber" resultType="int">
+		select
+		count(*)
+		from favorite
+		where f_mnumber=#{mnumber}
+	</select>
+</mapper>

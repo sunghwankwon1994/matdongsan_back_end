@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.AgentReviewDao">
+	<insert id="createAgentReviewByMember"
+		parameterType="AgentReview">
+		<selectKey keyProperty="arnumber" resultType="int"
+			order="BEFORE">
+			select seq_arnumber.nextval from dual
+		</selectKey>
+		insert into agent_Review(arnumber, arcontent, arrate,
+		ardate,ar_anumber,ar_mnumber)
+		values
+		(#{arnumber}, #{arcontent},
+		#{arrate}, sysdate,
+		#{arAnumber},#{arMnumber})
+	</insert>
+	<select id="getAgentReviewByAnumber" parameterType="Pager"
+		resultType="AgentReview">
+		<![CDATA[
+		select rnum, arnumber,arcontent,arrate,ardate,ar_anumber,ar_mnumber from (
+		select rownum as rnum, arnumber,arcontent,arrate,ardate,ar_anumber,ar_mnumber
+		from(
+			select arnumber,arcontent,arrate,ardate,ar_anumber,ar_mnumber
+			from agent_review
+			where AR_anumber =#{anumber} ]]>
+		<if test="sort == 'lowRate'">
+			order by arrate asc
+		</if>
+		<if test="sort == 'highRate'">
+			order by arrate desc
+		</if>
+
+		<if test="sort == 'desc'">
+			order by arnumber desc
+		</if>
+		<if test="sort == 'asc'">
+			order by arnumber asc
+		</if>
+		<![CDATA[
+		)
+		where rownum <= #{pager.endRowNo}
+		)
+		where rnum >= #{pager.startRowNo}
+		]]>
+	</select>
+	<select id="getTotalReviewRows" resultType="int">
+		select count(*) from
+		agent_review
+		where ar_anumber = #{anumber}
+	</select>
+	<delete id="deleteAgentReview" parameterType="int">
+		delete from
+		agent_review
+		where arnumber=#{arnumber}
+		and ar_anumber = #{anumber}
+		and
+		ar_mnumber = #{userNumber}
+	</delete>
+	<select id="getAgentReviewRateAvgByAnumber" parameterType="int"
+		resultType="int">
+	 <![CDATA[SELECT COALESCE(SUM(arrate), 0) FROM agent_review WHERE ar_anumber = #{anumber}]]>
+	</select>
+	<update id="updateAgentReview" parameterType="AgentReview">
+		update agent_review
+		set
+		arnumber=#{arnumber},
+		arcontent=#{arcontent},arrate=#{arrate}
+		where
+		arnumber=#{arnumber}
+		and ar_anumber = #{arAnumber}
+		and ar_mnumber =
+		#{arMnumber}
+	</update>
+
+</mapper>

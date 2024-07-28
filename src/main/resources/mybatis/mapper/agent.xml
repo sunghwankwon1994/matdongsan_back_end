@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.AgentDao">
+
+	<!-- 중개인 회원가입 -->
+	<insert id="joinByAgent" parameterType="Agent">
+		<selectKey keyProperty="anumber" resultType="int"
+			order="BEFORE">
+			select seq_anumber.nextval from dual
+		</selectKey>
+		insert into agent(anumber,aname, abrand, aphone,
+		aaddress,APROFILEDATA,APROFILEONAME,APROFILETYPE,
+		ALATITUDE,ALONGITUDE,APOSTCODE,AADDRESSDETAIL,A_UNUMBER)
+		values
+		(#{anumber},#{aname}, #{abrand}, #{aphone}, #{aaddress},
+		#{aprofiledata},#{aprofileoname},#{aprofiletype},#{alatitude},#{alongitude},#{apostcode},#{aaddressdetail},#{aUnumber})
+	</insert>
+	<select id="getAgentNumberByUserNumber" parameterType="int"
+		resultType="int">
+		select anumber from agent
+		where a_unumber = #{userNumber}
+	</select>
+	<!-- 전체 중개인 수 -->
+	<select id="getAllAgentCount" resultType="int">
+		select
+		count(*)
+		from
+		agent
+	</select>
+
+	<!-- 전체 중개인 리스트 -->
+<select id="getAgentListByKeyword" resultType="Agent">
+    <![CDATA[
+    SELECT *
+    FROM (
+        SELECT a.anumber,abrand,aphone,aaddress,alatitude,alongitude,apostcode,a_unumber,aname,aaddressdetail, 
+               COALESCE(ar.commentCount, 0) AS commentCount, 
+               COALESCE(ar.arrate, 0) AS arrate,
+               ROW_NUMBER() OVER (
+    ]]>
+    <trim prefix="ORDER BY" suffixOverrides=",">
+        <if test="byComment == 'many'">
+            <![CDATA[
+                COALESCE(ar.commentCount, 0) DESC,
+            ]]>
+        </if>
+        <if test="byComment == 'less'">
+            <![CDATA[
+                COALESCE(ar.commentCount, 0) ASC,
+            ]]>
+        </if>
+        <if test="byRate == 'high'">
+            <![CDATA[
+                COALESCE(ar.arrate, 0) DESC,
+            ]]>
+        </if>
+        <if test="byRate == 'low'">
+            <![CDATA[
+                COALESCE(ar.arrate, 0) ASC,
+            ]]>
+        </if>
+        <if test="byDate == 'desc'">
+            <![CDATA[
+                a.anumber DESC,
+            ]]>
+        </if>
+        <if test="byDate == 'asc'">
+            <![CDATA[
+                a.anumber ASC,
+            ]]>
+        </if>
+        <!-- 기본 정렬 조건을 설정 -->
+        <![CDATA[
+            a.anumber DESC
+        ]]>
+    </trim>
+    <![CDATA[
+               ) AS rnum
+        FROM Agent a
+        LEFT JOIN (
+            SELECT ar_anumber, COUNT(*) AS commentCount, AVG(arrate) AS arrate
+            FROM agent_review
+            GROUP BY ar_anumber
+        ) ar ON a.anumber = ar.ar_anumber
+        WHERE 1=1
+    ]]>
+    <if test="keyword != null and keyword != ''">
+        <![CDATA[
+        AND (a.abrand LIKE '%' || #{keyword} || '%'
+        OR a.aname LIKE '%' || #{keyword} || '%'
+        OR a.aaddress LIKE '%' || #{keyword} || '%')
+        ]]>
+    </if>
+    <![CDATA[
+    )
+    WHERE rnum BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+    ]]>
+</select>
+
+
+
+
+	<!-- 전체 중개인 리스트 -->
+	<select id="getAgentList" parameterType="map" resultType="Agent">
+    <![CDATA[
+    SELECT *
+    FROM (
+        SELECT a.*, ROW_NUMBER() OVER (ORDER BY a.anumber desc) AS rnum
+        FROM Agent a
+    )
+    WHERE rnum BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+    ]]>
+	</select>
+
+	<!-- <select id="getAgentList" resultType="Agent"> select * from agent </select> -->
+
+	<select id="getAgentDataByUserNumber" parameterType="int"
+		resultType="Agent">
+		SELECT *
+		FROM agent
+		where a_unumber = #{userNumber}
+	</select>
+	<select id="getAgentDataByAgentNumber" parameterType="int"
+		resultType="Agent">
+		SELECT *
+		FROM agent
+		where anumber = #{agentNumber}
+	</select>
+	<update id="updateAgentData" parameterType="Agent">
+		update agent set
+		abrand=#{abrand},aname=#{aname},
+		aphone=#{aphone},aaddress=#{aaddress},
+
+		<if test="aprofileoname != null">
+			aprofileoname=#{aprofileoname},
+			aprofiletype=#{aprofiletype},
+			aprofiledata=#{aprofiledata},
+		</if>
+
+		apostcode=#{apostcode},aaddressdetail=#{aaddressdetail},alatitude=#{alatitude},alongitude=#{alongitude}
+		where anumber=#{anumber}
+	</update>
+
+	<select id="getUserNumberByAnumber" parameterType="int"
+		resultType="int">
+		select a_unumber from agent
+		where anumber = #{anumber}
+	</select>
+	
+		<!-- 아이디 찾기 -->
+	<select id="findEmail" parameterType="agent" resultType="String">
+		select uemail from user_common_data
+		where unumber in (select a_unumber
+							from agent
+							where aname = #{aname} and aphone =#{aphone})
+	</select>
+	
+	<!-- 회원의 정보가 일치하는 지 확인 -->
+	<select id="checkAgent" parameterType="agent" resultType="int">
+		select count(*) from agent where aname = #{aname} and aphone =#{aphone}
+	</select>
+	
+	<!-- 좌표로 중개인 번호 찾기 -->
+	<select id="getAgentNumberByPosition" resultType="int">
+	select anumber from agent where alatitude = #{lat} and alongitude =#{lng}
+	</select>
+</mapper>

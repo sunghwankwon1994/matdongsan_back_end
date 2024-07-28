@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.ReportDao">
+	<!-- 생성 -->
+	<insert id="createPropertyReport" parameterType="Report">
+		<selectKey keyProperty="rnumber" resultType="int" order="BEFORE">
+			select seq_rnumber.nextval from dual
+		</selectKey>	
+		insert into report (rnumber, rcontent, rdate, r_pnumber, r_unumber)
+		values(#{rnumber}, #{rcontent}, sysdate, #{rPnumber}, #{rUnumber})
+	</insert>	
+	
+   <!-- 유저 허위 신고 총 개수 -->
+   <select id="getAllUserReportCountByUnumber" resultType="int">
+      select 
+      	count(*) 
+      from report
+      where r_unumber=#{unumber}
+   </select>	
+   
+   	<!-- 유저 매물 리스트 -->
+	<select id="getUserReportListByUnumber" parameterType="Pager"
+		resultType="Report">
+		<![CDATA[
+		select rnum, rnumber, rcontent, rdate, r_pnumber, r_unumber
+		from (
+				select rownum as rnum, rnumber, rcontent, rdate, r_pnumber, r_unumber
+		from(
+			select rnumber, rcontent, rdate, r_pnumber, r_unumber
+			from report
+			where r_unumber=#{unumber}
+			order by rnumber	]]>
+		<if test="filterKeyword !=null and filterKeyword == 'desc'">
+			desc
+		</if>
+			<if test="filterKeyword !=null and filterKeyword == 'asc'">
+			asc
+		</if>
+<![CDATA[
+		)
+		where rownum <= #{pager.endRowNo}
+		)
+		where rnum >= #{pager.startRowNo}
+		]]>
+	</select> 
+	
+	<!-- 허위 매물 신고 삭제 -->
+	<delete id="deleteUserReport" parameterType="int">
+		delete 
+		from report
+		where r_pnumber=#{pnumber} and r_unumber=#{unumber}
+	</delete>	  
+	
+	<!-- 허위 매물 신고 여부 -->
+	<select id="checkUserPropertyReport" parameterType="int" resultType="int">
+		select count(*) 
+		from report
+		where r_pnumber=#{pnumber} and r_unumber=#{unumber}
+	</select>	 
+</mapper>

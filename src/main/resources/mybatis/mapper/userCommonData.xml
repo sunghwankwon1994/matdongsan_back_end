@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.mycompany.matdongsan.dao.UserCommonDataDao">
+	<insert id="insertUserDataByUser" parameterType="UserCommonData">
+		<selectKey keyProperty="unumber" resultType="int"
+			order="BEFORE">
+			select seq_unumber.nextval from dual
+		</selectKey>
+		insert into USER_COMMON_DATA(unumber, uemail, upassword, urole,
+		uremoved)
+		values (#{unumber}, #{uemail}, #{upassword}, #{urole},
+		#{uremoved})
+	</insert>
+	<select id="getUserIdByUsername" parameterType="String"
+		resultType="int">
+		select unumber from USER_COMMON_DATA where uemail =
+		#{uemail}
+	</select>
+	<select id="getUserDataByUser" parameterType="String" resultType="UserCommonData">
+	select * from USER_COMMON_DATA
+	where uemail = #{uemail}
+	</select>
+	<select id="selectByUnumber" parameterType="String"
+		resultType="UserCommonData">
+		select unumber, uemail, upassword, urole,
+		ujoindate,uremoved
+		from USER_COMMON_DATA
+		where uemail = #{uemail}
+	</select>
+	<select id="getUserRoleByUserName" parameterType="String" resultType="String">
+		select urole from user_common_data
+		where uemail = #{name}
+	</select>
+	
+	<!-- 탈퇴 -->
+	<update id="deleteUser" parameterType="map">
+		update user_common_data 
+		set uremoved=#{isDeactivate}
+		where uemail=#{uemail}
+	</update>
+	
+	<!-- 이메일로 전체 정보 가져오기 -->
+	<select id="getUserDataByUemail" parameterType="String"
+		resultType="UserCommonData">
+		select * 
+		from user_common_data 
+		where uemail = #{uemail}
+	</select>
+	
+	<!-- unumber로 전체 정보 가져오기 -->
+	<select id="getUserDataByUnumber" parameterType="int" resultType="UserCommonData">
+	select * from USER_COMMON_DATA
+	where unumber = #{unumber}
+	</select>
+	<!-- 비밀번호 변경하기 -->
+	<update id="updatePassword" parameterType="UserCommonData">
+		update user_common_data
+		set upassword = #{upassword}
+		where uemail = #{uemail}
+	</update>	
+</mapper>

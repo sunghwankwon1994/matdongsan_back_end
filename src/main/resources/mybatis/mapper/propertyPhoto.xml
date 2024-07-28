@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.PropertyPhotoDao">
+	<!-- 생성 -->
+	<insert id="createPropertyByPropertyPhoto" parameterType="PropertyPhoto">
+		<selectKey keyProperty="ppnumber" resultType="int" order="BEFORE">
+			select seq_ppnumber.nextval from dual
+		</selectKey>	
+		insert into property_photo(ppnumber, ppattachoname, ppattachdata, ppattachtype, pp_pnumber)
+		values(#{ppnumber}, #{ppattachoname}, #{ppattachdata}, #{ppattachtype}, #{ppPnumber})
+	</insert>
+	
+	<!-- 수정 -->
+   <update id="updatePropertyByPropertyPhoto" parameterType="PropertyPhoto">
+      update property_photo set 
+	      ppattachoname=#{ppattachoname}, ppattachtype=#{ppattachtype}, 
+	      ppattachdata=#{ppattachdata}
+      where ppnumber=#{ppnumber}
+   </update>
+   
+   <!-- 읽기 -->
+   <select id="selectByPpnumber" parameterType="int" resultType="PropertyPhoto">
+      select *
+      from property_photo 
+      where ppnumber=#{ppnumber}
+   </select>
+   
+   <!-- pk 값 가져오기 -->
+	<select id="selectPpnumbersByPnumber" resultType="int">
+		select ppnumber 
+		from property_photo  
+		where pp_pnumber=#{ppPnumber}
+	</select>     
+	
+	<!-- 수정 시 삭제 -->
+	<delete id="deleteByPpnumber" parameterType="int">
+      delete 
+      from property_photo  
+      where ppnumber=#{ppnumber}
+    </delete> 	
+    
+	<!-- 삭제 -->
+	<delete id="deletePropertyPhotoByPpPnumber" parameterType="int">
+		delete 
+		from property_photo
+		where pp_pnumber=#{ppPnumber}
+	</delete>	
+	
+   <!-- 읽기 -->
+   <select id="selectPropertyPhotoByPpPnumber" parameterType="int" resultType="int">
+      select ppnumber
+      from property_photo 
+      where pp_pnumber=#{ppPnumber}
+   </select>	    
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.NoticeDao">
+	<!-- 공지사항 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+	<!-- 공지사항 생성 -->
+	<insert id="insertNotice" parameterType="notice">
+		<selectKey keyProperty="nnumber" resultType="int" order="BEFORE">
+			select SEQ_NNUMBER.nextval from dual
+		</selectKey>
+		insert into notice(
+			nnumber, ntitle, ncontent, ndate 
+		) values(
+			#{nnumber}, #{ntitle}, #{ncontent}, sysdate
+		)
+	</insert>
+	
+	<!-- 공지 사항 갯수 가져오기 -->
+	<select id="countNotice" resultType="int">
+		select count(*) from notice
+	</select>
+	
+	<!-- 공지사항 디테일 가져오기 -->
+	<select id="getNoticeDetail" parameterType="int" resultType="notice">
+		select ncontent, ndate, ntitle, nnumber
+		from notice
+		where nnumber =#{nnumber}
+	</select>
+	
+	<!-- 공지사항 수정하기 -->
+	<update id="updateNotice" parameterType="notice">
+		update notice set ncontent = #{ncontent}, ndate =sysdate, ntitle =#{ntitle}
+		where nnumber = #{nnumber}
+	</update>
+	
+	<!-- 공지사항 삭제하기 -->
+	<delete id="deleteNotice" parameterType="int">
+		delete from notice where nnumber = #{nnumber}
+	</delete>
+	
+	<!-- 검색 된 공지사항의 갯수 가져오기 -->
+	<select id="getCountOfSearchedNotices" parameterType="String" resultType="int">
+		select count(*) from notice where ntitle LIKE '%'||#{searchKeyword}||'%'
+	</select>
+	
+		
+	<select id="getSearchedNoticeList" parameterType="Map" resultType="notice">
+		<![CDATA[
+		select rnum, ntitle, ndate, nnumber
+		from(
+			select rownum as rnum, ntitle, ndate, nnumber
+			from(
+				select ntitle, ndate, nnumber
+				from notice]]>
+				<if test="keyword == null">
+					<![CDATA[
+					where ntitle LIKE '%'||#{searchKeyword}||'%'
+					]]>
+				</if>
+				<![CDATA[
+				order by ndate ${sort == 'desc' ? 'desc' : 'asc'})
+				where rownum <= #{pager.endRowNo}
+				)
+				where rnum >= #{pager.startRowNo}		
+				]]>
+	</select>
+</mapper>

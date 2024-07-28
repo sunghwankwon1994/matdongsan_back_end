@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.matdongsan.dao.QuestionDao">
+	<!-- 고객 문의 생성 -->
+	<insert id="insertQuestion" parameterType="question">
+		<selectKey keyProperty="qnumber" resultType="int" order="BEFORE">
+			select SEQ_QNUMBER.nextval from dual
+		</selectKey>
+		insert into question(
+			qnumber, qcategory, qtitle, qcontent, qattachoname, qattachdata, 
+			qattachtype, qdate, q_unumber 
+		) values(
+			#{qnumber}, #{qcategory}, #{qtitle}, #{qcontent}, #{qattachoname},
+			#{qattachdata}, #{qattachtype}, sysdate, #{ qUnumber }
+		)
+	</insert>
+	
+	<!-- 이미지 데이터는 빼고 가져 온다. -->
+	<select id="getQuestionByQUnumbers" parameterType="map" resultType="question">
+		select qnumber, qcategory, qtitle, qcontent, qattachoname,  
+			qattachtype, qdate, q_unumber, q_isanswer as qIsAnswer
+		from question
+		where qnumber = #{qnumber} and q_unumber = #{ qUnumber }
+	</select>
+	
+	<select id="getQuestionByQnumber" parameterType="int" resultType="question">
+		select qnumber, qcategory, qtitle, qcontent, qattachoname,  
+			qattachtype, qdate, q_unumber, q_isanswer as qIsAnswer
+		from question
+		where qnumber = #{qnumber}
+	</select>
+	
+	<!-- 이미지 데이터만 가져온다. -->
+	<select id="getQuestionImgByQnumber" parameterType="int" resultType="question">
+		select qnumber, qattachoname, qattachtype, q_unumber, qattachdata
+		from question
+		where qnumber = #{qnumber}
+	</select>
+	
+	<!-- 문의 수정하기 -->
+	<update id="updateQuestion" parameterType="question">
+		update question set qcategory = #{qcategory}, qtitle = #{qtitle}, 
+		qcontent = #{qcontent}, qdate = sysdate
+		<if test="qattachdata != null">
+		, qattachoname = #{qattachoname}
+		, qattachtype = #{qattachtype}
+		, qattachdata = #{qattachdata}
+		</if>
+		where qnumber = #{qnumber}
+	</update>
+	
+	<!-- 문의 삭제하기 -->
+	<delete id="deleteQuestionByQnumber" parameterType = "int">
+		delete from question where qnumber = #{qnumber}
+	</delete>
+	
+	<!-- 해당하는 회원의 문의 갯수 가져오기 -->
+	<select id="getQuestionCountByUnumber" resultType="int" parameterType="int">
+		select count(*) from question where q_unumber = #{qUnumber} 
+	</select>
+	
+	
+	<!-- 해당하는 회원의 문의 리스트 가져오기 -->
+	<select id="getUsersQuestionList" parameterType="Map" resultType="question">
+		<![CDATA[
+		select rnum, qtitle, qdate, qnumber, q_unumber, qcontent, qIsAnswer, qcategory, qattachoname
+		from(
+			select rownum as rnum, qtitle, qdate, qnumber, q_unumber, qcontent,qIsAnswer, qcategory, qattachoname
+			from(
+				select qtitle, qdate, qnumber, q_unumber, qcontent , q_isanswer as qIsAnswer, qcategory, qattachoname
+				from question
+				where q_unumber = #{qUnumber}
+				order by qdate desc
+				)
+			where rownum <= #{pager.endRowNo}
+		)
+		where rnum >= #{pager.startRowNo}
+		]]>
+	</select>
+	
+	<!-- 문의 갯수 가져오기 -->
+	<select id="getQuestionCount" resultType="int">
+		select count(*) from question 
+	</select>
+	
+	<!-- 해당하는 조건의 문의 갯수 가져오기 -->
+	<select id="getQuestionCountByType" parameterType="map" resultType="int">
+		select count(*) from question
+		<where> 
+		<if test="filter != null and filter != ''">
+			and qcategory = #{filter}
+		</if>
+		<if test="isAnswer == 'noAnswer'">
+			and q_isanswer is null
+		</if>
+		</where>
+	</select>
+	
+	
+	<!-- 문의 리스트 가져오기 -->
+	<select id="getQuestionList" parameterType="Map" resultType="question">
+		<![CDATA[
+		select rnum, qtitle, qdate, qnumber, q_unumber, qIsAnswer, qcategory
+		from(
+			select rownum as rnum, qtitle, qdate, qnumber, q_unumber,qIsAnswer, qcategory
+			from(
+				select qtitle, qdate, qnumber, q_unumber, q_isanswer as qIsAnswer, qcategory
+				from question
+				]]>
+				<where> 
+					<if test="filter != null and filter != ''">
+						and qcategory = #{filter}
+					</if>
+					<if test="isAnswer == 'noAnswer'">
+						and q_isanswer is null
+					</if>
+				</where>
+				<![CDATA[
+				order by qdate ${sort == 'desc' ? 'desc' : 'asc'})
+				
+			where rownum <= #{pager.endRowNo}
+		)
+		where rnum >= #{pager.startRowNo}
+		]]>
+	</select>
+	
+	<!-- 고객 문의에 답변이 되었다는 값 넣기 -->
+	<update id="insertIsAnswer" parameterType="int">
+		update question set q_isanswer = 1 where qnumber = #{qnumber}
+	</update>
+	
+	<!-- 고객 문의에 답변을 삭제하면 답변이 되었다는 값을 없애기 -->
+	<update id="updateRemoveAnswer" parameterType="int">
+		update question set q_isanswer = null where qnumber = #{qnumber}
+	</update>
+	
+	<!-- 고객 문의 작성자 가져오기 -->
+	<select id="getWriterByQunumber" parameterType="int" resultType="String">
+		select uemail from user_common_data where unumber = #{qUnumber} 
+	</select>
+</mapper>
