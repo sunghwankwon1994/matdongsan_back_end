@@ -1,6 +1,9 @@
 ## 전체 DB 스키마
 ![image](https://github.com/user-attachments/assets/1b041f45-7c3b-4a84-adf3-f089c0343d2d)
 
+## 시스템 아키텍처
+<img width="722" alt="image" src="https://github.com/user-attachments/assets/2b64e947-075a-4d9e-b493-6cb5a8201994">
+
 ## 메인 페이지
 ![image](https://github.com/user-attachments/assets/633a367e-eeb6-41a9-b5c8-c5ff9b3f4190)
 
